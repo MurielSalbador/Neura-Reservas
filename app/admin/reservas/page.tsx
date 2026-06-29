@@ -32,6 +32,7 @@ type Booking = {
     category: { name: string } | null;
   };
   resource: { id: string; name: string; type: string | null };
+  createdAt: string;
 };
 
 const STATUS_OPTIONS = [
@@ -518,12 +519,12 @@ export default function ReservasAdminPage() {
   ).length;
   const pendingCount = bookings.filter((b) => b.status === "pending").length;
   const monthCount = bookings.filter(
-    (b) => b.date.slice(0, 7) === thisMonth && b.status !== "cancelled"
+    (b) => b.createdAt.slice(0, 7) === thisMonth && b.status !== "cancelled"
   ).length;
   const monthRevenue = bookings
     .filter(
       (b) =>
-        b.date.slice(0, 7) === thisMonth &&
+        b.createdAt.slice(0, 7) === thisMonth &&
         ["confirmed", "deposited", "paid", "completed"].includes(b.status)
     )
     .reduce((s, b) => s + b.totalAmount, 0);
