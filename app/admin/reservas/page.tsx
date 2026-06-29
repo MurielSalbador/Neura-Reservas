@@ -103,7 +103,7 @@ function EditModal({
 }: {
   booking: Booking;
   onClose: () => void;
-  onSave: (updated: Booking) => void;
+  onSave: (updated: Booking) => Promise<void>;
 }) {
   const [form, setForm] = useState<EditForm>({
     customerName: booking.customerName,
@@ -160,27 +160,16 @@ function EditModal({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
-      if (!res.ok) throw new Error();
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || "Error del servidor");
+      }
 
-      onSave({
-        ...booking,
-        customerName: form.customerName.trim(),
-        customerEmail: form.customerEmail.trim(),
-        customerPhone: form.customerPhone.trim() || null,
-        notes: form.notes.trim() || null,
-        date: body.date as string,
-        endDate: body.endDate as string | null,
-        startTime: body.startTime as string | null,
-        endTime: body.endTime as string | null,
-        status: form.status,
-        paymentStatus: form.paymentStatus,
-        totalAmount: parseFloat(form.totalAmount) || 0,
-        depositAmount: parseFloat(form.depositAmount) || 0,
-        paidAmount: parseFloat(form.paidAmount) || 0,
-      });
+      const saved = await res.json();
+      await onSave(saved);
       onClose();
-    } catch {
-      setError("Error al guardar los cambios.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error al guardar los cambios.");
     } finally {
       setSaving(false);
     }
@@ -505,8 +494,8 @@ export default function ReservasAdminPage() {
     }
   }
 
-  function handleEditSave(updated: Booking) {
-    setBookings((prev) => prev.map((b) => (b.id === updated.id ? updated : b)));
+  async function handleEditSave(_saved: Booking) {
+    await fetchBookings();
   }
 
   const today = new Date().toISOString().split("T")[0];

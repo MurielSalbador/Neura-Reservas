@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { CalendarDays, Eye, EyeOff } from "lucide-react";
+import { CalendarDays, Eye, EyeOff, ArrowLeft } from "lucide-react";
 import { useAuth } from "@/app/context/AuthContext";
 
 export default function RegistroPage() {
@@ -43,6 +43,17 @@ export default function RegistroPage() {
   return (
     <div className="min-h-screen bg-[#050811] flex items-center justify-center p-4">
       <div className="w-full max-w-md">
+        {/* Back to home */}
+        <div className="mb-6">
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-white transition-colors"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Volver al inicio
+          </Link>
+        </div>
+
         {/* Logo */}
         <div className="flex items-center justify-center gap-3 mb-8">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-500 shadow-lg">
