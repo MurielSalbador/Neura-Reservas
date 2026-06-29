@@ -155,21 +155,6 @@ npm run db:seed      # Poblar la base con datos de ejemplo
 npm run db:studio    # Abrir Prisma Studio (GUI para la base de datos)
 ```
 
----
-
-## Datos de ejemplo
-
-El seed crea:
-
-| Tipo | Detalle |
-|---|---|
-| Usuarios | `admin@reservas.com` / `admin123`, un owner y un cliente |
-| Categorías | 10 (Canchas, Salones, Peluquerías, Gimnasios, Médicos, Restaurantes, etc.) |
-| Negocios | 8 negocios con sus recursos y precios |
-| Reservas | 5 reservas con distintos estados y pagos |
-
----
-
 ## Consideraciones para producción
 
 - Reemplazar la autenticación por JWT o sesiones seguras (el sistema actual usa localStorage sin expiración).

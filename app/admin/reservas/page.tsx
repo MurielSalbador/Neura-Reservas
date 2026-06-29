@@ -57,6 +57,18 @@ const PAYMENT_OPTIONS = [
   { value: "paid", label: "Pagado completo" },
 ];
 
+const PAYMENT_LABELS: Record<string, string> = {
+  pending: "Pago pendiente",
+  partial: "Seña abonada",
+  paid: "Pago completo",
+};
+
+const PAYMENT_COLORS: Record<string, string> = {
+  pending: "bg-yellow-500/15 text-yellow-300",
+  partial: "bg-blue-500/15 text-blue-300",
+  paid: "bg-green-500/15 text-green-300",
+};
+
 function avatarColor(name: string) {
   const palette = ["bg-blue-500", "bg-purple-500", "bg-green-500", "bg-pink-500", "bg-orange-500", "bg-teal-500", "bg-indigo-500"];
   return palette[name.charCodeAt(0) % palette.length];
@@ -813,17 +825,17 @@ export default function ReservasAdminPage() {
 
                       {/* Row 3: amount + actions */}
                       <div className="flex items-center justify-between pt-2 border-t border-white/[0.06]">
-                        <div>
+                        <div className="flex flex-col gap-1">
                           <p className="text-sm font-semibold text-white">
                             {formatCurrency(b.totalAmount)}
                           </p>
-                          <p className="text-[11px] text-slate-500">
-                            {b.paymentStatus === "paid"
-                              ? "Pagado"
-                              : b.depositAmount > 0
-                              ? `Seña: ${formatCurrency(b.depositAmount)}`
-                              : "Sin seña"}
-                          </p>
+                          <span
+                            className={`self-start text-[10px] font-medium px-2 py-0.5 rounded-full ${
+                              PAYMENT_COLORS[b.paymentStatus] ?? "bg-slate-500/15 text-slate-300"
+                            }`}
+                          >
+                            {PAYMENT_LABELS[b.paymentStatus] ?? b.paymentStatus}
+                          </span>
                         </div>
                         {actionButtons}
                       </div>
@@ -911,19 +923,17 @@ export default function ReservasAdminPage() {
                       </div>
 
                       {/* Pago */}
-                      <div className="flex-shrink-0">
+                      <div className="flex-shrink-0 flex flex-col gap-1">
                         <p className="text-sm font-semibold text-white">
                           {formatCurrency(b.totalAmount)}
                         </p>
-                        <p className="text-[11px] text-slate-500">
-                          {b.status === "cancelled"
-                            ? "Cancelado"
-                            : b.paymentStatus === "paid"
-                            ? "Pagado"
-                            : b.depositAmount > 0
-                            ? `Seña: ${formatCurrency(b.depositAmount)}`
-                            : "Pendiente"}
-                        </p>
+                        <span
+                          className={`self-start text-[10px] font-medium px-2 py-0.5 rounded-full ${
+                            PAYMENT_COLORS[b.paymentStatus] ?? "bg-slate-500/15 text-slate-300"
+                          }`}
+                        >
+                          {PAYMENT_LABELS[b.paymentStatus] ?? b.paymentStatus}
+                        </span>
                       </div>
 
                       {/* Acciones */}

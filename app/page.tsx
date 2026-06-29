@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRef } from "react";
 import {
   ArrowRight,
   Search,
@@ -106,6 +107,15 @@ const stats = [
 ];
 
 export default function HomePage() {
+  const featuredRef = useRef<HTMLDivElement>(null);
+
+  function scrollFeatured(dir: "left" | "right") {
+    const el = featuredRef.current;
+    if (!el) return;
+    const cardW = el.firstElementChild ? (el.firstElementChild as HTMLElement).offsetWidth + 16 : 300;
+    el.scrollBy({ left: dir === "left" ? -cardW : cardW, behavior: "smooth" });
+  }
+
   return (
     <div className="px-6 py-6 space-y-8 max-w-5xl mx-auto">
       {/* Hero */}
@@ -253,20 +263,29 @@ export default function HomePage() {
             <Link href="/explorar" className="text-sm text-brand-300 hover:text-brand-200 transition-colors mr-2">
               Ver todos
             </Link>
-            <button className="flex h-8 w-8 items-center justify-center rounded-xl border border-white/[0.08] text-slate-400 hover:text-white hover:bg-white/[0.06] transition-all">
+            <button
+              onClick={() => scrollFeatured("left")}
+              className="flex h-8 w-8 items-center justify-center rounded-xl border border-white/[0.08] text-slate-400 hover:text-white hover:bg-white/[0.06] transition-all"
+            >
               <ChevronLeft className="h-4 w-4" />
             </button>
-            <button className="flex h-8 w-8 items-center justify-center rounded-xl border border-white/[0.08] text-slate-400 hover:text-white hover:bg-white/[0.06] transition-all">
+            <button
+              onClick={() => scrollFeatured("right")}
+              className="flex h-8 w-8 items-center justify-center rounded-xl border border-white/[0.08] text-slate-400 hover:text-white hover:bg-white/[0.06] transition-all"
+            >
               <ChevronRight className="h-4 w-4" />
             </button>
           </div>
         </div>
-        <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
+        <div
+          ref={featuredRef}
+          className="flex gap-4 overflow-x-auto snap-x snap-mandatory [scrollbar-width:none] [&::-webkit-scrollbar]:hidden pb-1"
+        >
           {featured.map((biz) => (
             <Link
               key={biz.slug}
               href={`/negocio/${biz.slug}`}
-              className="group rounded-2xl border border-white/[0.08] bg-[#0a0f25] overflow-hidden hover:border-white/20 hover:-translate-y-1 transition-all"
+              className="group snap-start flex-shrink-0 w-[calc(50%-8px)] xl:w-[calc(25%-12px)] rounded-2xl border border-white/[0.08] bg-[#0a0f25] overflow-hidden hover:border-white/20 hover:-translate-y-1 transition-all"
             >
               <div className="relative h-44 overflow-hidden">
                 <div
