@@ -1,13 +1,12 @@
 "use client";
 
-import { Suspense, useState, useEffect, useCallback } from "react";
+import { Suspense, useState, useEffect, useCallback, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { Search, Star, MapPin, SlidersHorizontal, X, Loader2 } from "lucide-react";
+import { Search, Star, MapPin, SlidersHorizontal, X, Loader2, ChevronDown, Check } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 
 const categories = [
-  { name: "Todos", slug: "" },
   { name: "Canchas", slug: "canchas", emoji: "⚽" },
   { name: "Salones", slug: "salones", emoji: "🎉" },
   { name: "Peluquerías", slug: "peluquerias", emoji: "✂️" },
@@ -35,7 +34,10 @@ type Business = {
 function ExplorarContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const [activeCat, setActiveCat] = useState(searchParams.get("cat") ?? "");
+  const initialCat = searchParams.get("cat") ?? "";
+  const [activeCats, setActiveCats] = useState<string[]>(initialCat ? [initialCat] : []);
+  const [catDropOpen, setCatDropOpen] = useState(false);
+  const catDropRef = useRef<HTMLDivElement>(null);
   const [query, setQuery] = useState(searchParams.get("q") ?? "");
   const [showFilters, setShowFilters] = useState(false);
   const [sortBy, setSortBy] = useState("rating");
@@ -45,21 +47,37 @@ function ExplorarContent() {
   const fetchBusinesses = useCallback(async () => {
     setLoading(true);
     const params = new URLSearchParams();
-    if (activeCat) params.set("cat", activeCat);
     if (query) params.set("q", query);
     const res = await fetch(`/api/businesses?${params}`);
     const data = await res.json();
     setBusinesses(Array.isArray(data) ? data : []);
     setLoading(false);
-  }, [activeCat, query]);
+  }, [query]);
 
   useEffect(() => {
     fetchBusinesses();
   }, [fetchBusinesses]);
 
-  function handleCatChange(slug: string) {
-    setActiveCat(slug);
-    router.replace(slug ? `/explorar?cat=${slug}` : "/explorar", { scroll: false });
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (catDropRef.current && !catDropRef.current.contains(e.target as Node)) {
+        setCatDropOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
+
+  function toggleCat(slug: string) {
+    setActiveCats((prev) =>
+      prev.includes(slug) ? prev.filter((s) => s !== slug) : [...prev, slug]
+    );
+    router.replace("/explorar", { scroll: false });
+  }
+
+  function clearCats() {
+    setActiveCats([]);
+    router.replace("/explorar", { scroll: false });
   }
 
   function handleSearch(e: React.FormEvent) {
@@ -67,9 +85,15 @@ function ExplorarContent() {
     fetchBusinesses();
   }
 
-  const sorted = [...businesses].sort((a, b) =>
-    sortBy === "rating" ? b.rating - a.rating : b.reviewCount - a.reviewCount
-  );
+  const sorted = [...businesses]
+    .filter((b) => activeCats.length === 0 || activeCats.includes(b.category.slug))
+    .sort((a, b) => sortBy === "rating" ? b.rating - a.rating : b.reviewCount - a.reviewCount);
+
+  const catLabel = activeCats.length === 0
+    ? "Categoría"
+    : activeCats.length === 1
+    ? (categories.find((c) => c.slug === activeCats[0])?.name ?? "Categoría")
+    : `${activeCats.length} categorías`;
 
   return (
     <div className="px-6 py-6 space-y-5">
@@ -78,7 +102,7 @@ function ExplorarContent() {
         <div className="flex-1">
           <h1 className="text-xl font-bold text-white">Explorar negocios</h1>
           <p className="text-sm text-slate-500 mt-0.5">
-            {loading ? "Cargando..." : `${sorted.length} resultado${sorted.length !== 1 ? "s" : ""}${activeCat ? ` en ${categories.find((c) => c.slug === activeCat)?.name}` : ""}`}
+            {loading ? "Cargando..." : `${sorted.length} resultado${sorted.length !== 1 ? "s" : ""}${activeCats.length > 0 ? ` en ${catLabel}` : ""}`}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -93,24 +117,67 @@ function ExplorarContent() {
             {query && (
               <button
                 type="button"
-                onClick={() => { setQuery(""); }}
+                onClick={() => setQuery("")}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white"
               >
                 <X className="h-3.5 w-3.5" />
               </button>
             )}
           </form>
+
+          {/* Category dropdown */}
+          <div className="relative" ref={catDropRef}>
+            <button
+              onClick={() => setCatDropOpen((o) => !o)}
+              className={`flex items-center gap-2 h-10 rounded-xl border px-3 text-sm transition-all whitespace-nowrap ${
+                activeCats.length > 0
+                  ? "bg-brand-500/20 border-brand-500/30 text-brand-300"
+                  : "bg-white/[0.06] border-white/[0.08] text-slate-400 hover:text-white"
+              }`}
+            >
+              {catLabel}
+              {activeCats.length > 0 && (
+                <span
+                  onClick={(e) => { e.stopPropagation(); clearCats(); }}
+                  className="ml-1 text-brand-300 hover:text-white"
+                >
+                  <X className="h-3 w-3" />
+                </span>
+              )}
+              <ChevronDown className={`h-3.5 w-3.5 transition-transform ${catDropOpen ? "rotate-180" : ""}`} />
+            </button>
+            {catDropOpen && (
+              <div className="absolute right-0 top-12 z-30 w-52 rounded-2xl border border-white/[0.1] bg-[#0c1230] shadow-2xl py-2">
+                {categories.map((cat) => {
+                  const active = activeCats.includes(cat.slug);
+                  return (
+                    <button
+                      key={cat.slug}
+                      onClick={() => toggleCat(cat.slug)}
+                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-white/[0.05] transition-colors"
+                    >
+                      <span className="text-base leading-none">{cat.emoji}</span>
+                      <span className={`flex-1 text-left ${active ? "text-white font-medium" : "text-slate-400"}`}>
+                        {cat.name}
+                      </span>
+                      {active && <Check className="h-3.5 w-3.5 text-brand-400 flex-shrink-0" />}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
           <button
             onClick={() => setShowFilters(!showFilters)}
             className={`flex items-center gap-2 h-10 rounded-xl border px-3 text-sm transition-all ${showFilters ? "bg-brand-500/20 border-brand-500/30 text-brand-300" : "bg-white/[0.06] border-white/[0.08] text-slate-400 hover:text-white"}`}
           >
             <SlidersHorizontal className="h-4 w-4" />
-            Filtros
           </button>
         </div>
       </div>
 
-      {/* Filters */}
+      {/* Sort filters */}
       {showFilters && (
         <div className="rounded-2xl border border-white/[0.08] bg-white/[0.03] p-4 flex items-center gap-4">
           <div>
@@ -130,24 +197,6 @@ function ExplorarContent() {
         </div>
       )}
 
-      {/* Category tabs */}
-      <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
-        {categories.map((cat) => (
-          <button
-            key={cat.slug}
-            onClick={() => handleCatChange(cat.slug)}
-            className={`flex items-center gap-1.5 flex-shrink-0 rounded-xl px-3.5 py-2 text-sm font-medium transition-all ${
-              activeCat === cat.slug
-                ? "bg-brand-500 text-white"
-                : "bg-white/[0.06] border border-white/[0.08] text-slate-400 hover:text-white hover:bg-white/[0.10]"
-            }`}
-          >
-            {cat.emoji && <span>{cat.emoji}</span>}
-            {cat.name}
-          </button>
-        ))}
-      </div>
-
       {/* Grid */}
       {loading ? (
         <div className="flex items-center justify-center py-20">
@@ -159,7 +208,7 @@ function ExplorarContent() {
           <p className="text-lg font-semibold text-white">Sin resultados</p>
           <p className="text-sm text-slate-500 mt-1">Probá con otra categoría o término de búsqueda</p>
           <button
-            onClick={() => { handleCatChange(""); setQuery(""); }}
+            onClick={() => { clearCats(); setQuery(""); }}
             className="mt-4 text-sm text-brand-300 hover:text-brand-200 transition-colors"
           >
             Ver todos los negocios

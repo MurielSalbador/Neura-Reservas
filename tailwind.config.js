@@ -22,6 +22,15 @@ module.exports = {
       boxShadow: {
         glow: "0 32px 80px rgba(102, 109, 255, 0.16)",
       },
+      animation: {
+        marquee: "marquee 30s linear infinite",
+      },
+      keyframes: {
+        marquee: {
+          "0%": { transform: "translateX(0%)" },
+          "100%": { transform: "translateX(-50%)" },
+        },
+      },
     },
   },
   plugins: [],

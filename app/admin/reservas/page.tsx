@@ -446,6 +446,7 @@ export default function ReservasAdminPage() {
   const [fetchError, setFetchError] = useState("");
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("");
   const [updating, setUpdating] = useState<string | null>(null);
   const [editingBooking, setEditingBooking] = useState<Booking | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
@@ -526,6 +527,10 @@ export default function ReservasAdminPage() {
     )
     .reduce((s, b) => s + b.totalAmount, 0);
 
+  const categoryOptions = Array.from(
+    new Set(bookings.map((b) => b.business.category?.name).filter(Boolean))
+  ) as string[];
+
   const filtered = bookings.filter((b) => {
     const q = query.toLowerCase();
     const matchQ =
@@ -535,7 +540,8 @@ export default function ReservasAdminPage() {
       b.business.name.toLowerCase().includes(q) ||
       b.resource.name.toLowerCase().includes(q);
     const matchStatus = !statusFilter || b.status === statusFilter;
-    return matchQ && matchStatus;
+    const matchCategory = !categoryFilter || b.business.category?.name === categoryFilter;
+    return matchQ && matchStatus && matchCategory;
   });
 
   const stats = [
@@ -643,6 +649,18 @@ export default function ReservasAdminPage() {
           {STATUS_OPTIONS.map((o) => (
             <option key={o.value} value={o.value} className="bg-[#0a0f25]">
               {o.label}
+            </option>
+          ))}
+        </select>
+        <select
+          value={categoryFilter}
+          onChange={(e) => setCategoryFilter(e.target.value)}
+          className="h-10 rounded-xl bg-white/[0.05] border border-white/[0.08] px-3 text-sm text-slate-300 outline-none cursor-pointer"
+        >
+          <option value="" className="bg-[#0a0f25]">Todas las categorías</option>
+          {categoryOptions.map((cat) => (
+            <option key={cat} value={cat} className="bg-[#0a0f25]">
+              {cat}
             </option>
           ))}
         </select>

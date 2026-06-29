@@ -5,7 +5,6 @@ import {
   ArrowRight,
   Search,
   Star,
-  Heart,
   MapPin,
   CalendarDays,
   Smile,
@@ -220,24 +219,26 @@ export default function HomePage() {
             <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
-        <div className="grid grid-cols-3 sm:grid-cols-5 xl:grid-cols-9 gap-2">
-          {categories.map((cat) => (
-            <Link
-              key={cat.name}
-              href={cat.slug ? `/explorar?cat=${cat.slug}` : "/explorar"}
-              className={`group flex flex-col items-center gap-2 rounded-2xl border ${cat.border} bg-gradient-to-b ${cat.color} p-3 hover:scale-105 transition-all`}
-            >
-              <div className={`h-10 w-10 rounded-xl ${cat.iconBg} flex items-center justify-center text-xl`}>
-                {cat.emoji}
-              </div>
-              <div className="text-center">
-                <p className="text-xs font-medium text-white leading-snug">{cat.name}</p>
-                {cat.count !== null && (
-                  <p className="text-[9px] text-slate-500 mt-0.5">{cat.count} negocios</p>
-                )}
-              </div>
-            </Link>
-          ))}
+        <div className="relative overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_8%,black_92%,transparent)]">
+          <div className="flex gap-3 w-max animate-marquee hover:[animation-play-state:paused]">
+            {[...categories, ...categories].map((cat, i) => (
+              <Link
+                key={i}
+                href={cat.slug ? `/explorar?cat=${cat.slug}` : "/explorar"}
+                className={`group flex-shrink-0 flex flex-col items-center gap-2 rounded-2xl border ${cat.border} bg-gradient-to-b ${cat.color} p-3 w-24 hover:scale-105 transition-all`}
+              >
+                <div className={`h-10 w-10 rounded-xl ${cat.iconBg} flex items-center justify-center text-xl`}>
+                  {cat.emoji}
+                </div>
+                <div className="text-center">
+                  <p className="text-xs font-medium text-white leading-snug">{cat.name}</p>
+                  {cat.count !== null && (
+                    <p className="text-[9px] text-slate-500 mt-0.5">{cat.count} negocios</p>
+                  )}
+                </div>
+              </Link>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -273,16 +274,10 @@ export default function HomePage() {
                   style={{ backgroundImage: `url(${biz.cover})` }}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent" />
-                <div className="absolute top-3 left-3 right-3 flex items-center justify-between">
+                <div className="absolute top-3 left-3">
                   <span className={`text-[10px] font-semibold px-2.5 py-1 rounded-full backdrop-blur-sm ${biz.tagColor}`}>
                     {biz.tag}
                   </span>
-                  <button
-                    className="flex h-7 w-7 items-center justify-center rounded-full bg-black/40 backdrop-blur-sm border border-white/20 text-white hover:text-red-400 transition-colors"
-                    onClick={(e) => e.preventDefault()}
-                  >
-                    <Heart className="h-3.5 w-3.5" />
-                  </button>
                 </div>
               </div>
               <div className="p-3.5">
